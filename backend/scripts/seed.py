@@ -1,5 +1,6 @@
 """Seed a demo user with a few notes. Idempotent: wipes the demo user before inserting."""
 
+import os
 from datetime import date, timedelta
 
 from app.auth import hash_password
@@ -18,7 +19,16 @@ def seed() -> None:
             db.delete(existing)
             db.commit()
 
-        user = User(username=DEMO_USERNAME, password_hash=hash_password(DEMO_PASSWORD))
+        # Support optional Telegram demo: set TELEGRAM_CHAT_ID env var before
+        # running `make seed` to wire the demo user up for live notifications.
+        demo_chat_id = os.environ.get("TELEGRAM_CHAT_ID") or None
+
+        user = User(
+            username=DEMO_USERNAME,
+            password_hash=hash_password(DEMO_PASSWORD),
+            telegram_chat_id=demo_chat_id,
+            telegram_notifications=demo_chat_id is not None,
+        )
         db.add(user)
         db.flush()
 
@@ -55,7 +65,14 @@ def seed() -> None:
         ]
         db.add_all(notes)
         db.commit()
-        print(f"Seeded '{DEMO_USERNAME}' / '{DEMO_PASSWORD}' with {len(notes)} notes.")
+
+        if demo_chat_id:
+            print(
+                f"Seeded '{DEMO_USERNAME}' / '{DEMO_PASSWORD}' with {len(notes)} notes. "
+                f"Telegram chat_id={demo_chat_id} — notifications enabled."
+            )
+        else:
+            print(f"Seeded '{DEMO_USERNAME}' / '{DEMO_PASSWORD}' with {len(notes)} notes.")
     finally:
         db.close()
 

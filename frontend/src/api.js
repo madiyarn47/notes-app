@@ -73,4 +73,11 @@ export const api = {
     }),
   deleteAccount: (password) =>
     request('/account', { method: 'DELETE', body: { password } }),
+
+  getTelegramSettings: () => request('/account/telegram'),
+  updateTelegramSettings: (chatId, notifications) =>
+    request('/account/telegram', {
+      method: 'PATCH',
+      body: { telegram_chat_id: chatId || null, telegram_notifications: notifications },
+    }),
 };

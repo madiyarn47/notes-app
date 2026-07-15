@@ -308,6 +308,59 @@
         "title": "OkOut",
         "type": "object"
       },
+      "TelegramSettingsIn": {
+        "properties": {
+          "telegram_chat_id": {
+            "anyOf": [
+              {
+                "maxLength": 32,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Telegram Chat Id"
+          },
+          "telegram_notifications": {
+            "default": false,
+            "title": "Telegram Notifications",
+            "type": "boolean"
+          }
+        },
+        "title": "TelegramSettingsIn",
+        "type": "object"
+      },
+      "TelegramSettingsOut": {
+        "properties": {
+          "telegram_bot_configured": {
+            "title": "Telegram Bot Configured",
+            "type": "boolean"
+          },
+          "telegram_chat_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Telegram Chat Id"
+          },
+          "telegram_notifications": {
+            "title": "Telegram Notifications",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "telegram_bot_configured",
+          "telegram_chat_id",
+          "telegram_notifications"
+        ],
+        "title": "TelegramSettingsOut",
+        "type": "object"
+      },
       "TokenOut": {
         "properties": {
           "access_token": {
@@ -498,6 +551,76 @@
           }
         ],
         "summary": "Change Password",
+        "tags": [
+          "account"
+        ]
+      }
+    },
+    "/api/account/telegram": {
+      "get": {
+        "operationId": "get_telegram_settings_api_account_telegram_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TelegramSettingsOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "summary": "Get Telegram Settings",
+        "tags": [
+          "account"
+        ]
+      },
+      "patch": {
+        "operationId": "update_telegram_settings_api_account_telegram_patch",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TelegramSettingsIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TelegramSettingsOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "summary": "Update Telegram Settings",
         "tags": [
           "account"
         ]

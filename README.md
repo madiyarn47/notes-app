@@ -11,6 +11,7 @@ Each user has their own private space. Every note is a Markdown document with a 
 - Tags with filtering.
 - Full-text search across title and body.
 - Optional date on a note + a calendar view.
+- **Telegram reminders** — get a message when a note's date arrives (optional; requires a bot token).
 
 ## Run it
 
@@ -27,6 +28,28 @@ Demo credentials (after `make seed`):
 
 - **username:** `demo`
 - **password:** `demo1234`
+
+### Telegram reminders (optional)
+
+1. Create a bot via [@BotFather](https://t.me/BotFather) and copy the token.
+2. Add it to the backend environment (e.g. in `docker-compose.yml` or a `.env` file):
+   ```
+   TELEGRAM_BOT_TOKEN=123456789:AABBcc...
+   ```
+3. `make up` — the scheduler starts automatically when the token is present.
+4. In the app, go to **Settings → Telegram notifications**, enter your chat ID
+   (send `/start` to [@userinfobot](https://t.me/userinfobot) to find it), and
+   enable reminders.
+
+Any note with a date set to today or earlier will trigger a reminder message.
+To test immediately after `make seed`, run:
+
+```bash
+TELEGRAM_CHAT_ID=<your_chat_id> make seed
+```
+
+This wires the demo user's Telegram on creation so a reminder fires within the
+first scheduler tick (≤ 60 s after `make up`).
 
 ## Common commands
 

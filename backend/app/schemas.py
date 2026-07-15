@@ -66,3 +66,15 @@ class DeleteAccountIn(BaseModel):
 
 class OkOut(BaseModel):
     ok: bool = True
+
+
+class TelegramSettingsOut(BaseModel):
+    telegram_bot_configured: bool
+    telegram_chat_id: str | None
+    telegram_notifications: bool
+    model_config = ConfigDict(from_attributes=True)
+
+
+class TelegramSettingsIn(BaseModel):
+    telegram_chat_id: str | None = Field(default=None, max_length=32)
+    telegram_notifications: bool = False

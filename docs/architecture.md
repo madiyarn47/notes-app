@@ -29,7 +29,7 @@ All three are orchestrated by `docker-compose.yml`. The frontend talks to the ba
 ### Services
 
 - **`db`** — owns all persistent state. No logic lives here beyond schema (managed by Alembic) and ownership indexes. External deps: none. Data volume: `db_data`.
-- **`backend`** — the only component allowed to talk to `db`. Owns authentication (JWT issuing and verification), authorization (per-row `user_id` filtering), domain logic (notes, tags, calendar aggregation, archive/pin semantics, pagination), and request validation (Pydantic). Exposes HTTP only — no background jobs.
+- **`backend`** — the only component allowed to talk to `db`. Owns authentication (JWT issuing and verification), authorization (per-row `user_id` filtering), domain logic (notes, tags, calendar aggregation, archive/pin semantics, pagination), and request validation (Pydantic). Exposes HTTP. When `TELEGRAM_BOT_TOKEN` is set, also runs a background scheduler thread that dispatches Telegram reminders for notes whose date has arrived.
 - **`frontend`** — a pure SPA. Holds no server state; the JWT in `localStorage` is its only persistent local state. Talks only to `/api/*` via the Vite dev proxy. Owns layout, user interaction, optimistic UX affordances (markdown preview, keyboard shortcuts, calendar rendering).
 
 ### Backend packages
@@ -54,6 +54,8 @@ graph TD
 - **`app/auth.py`** — password hashing (bcrypt) and JWT encoding. Pure functions; no I/O.
 - **`app/deps.py`** — FastAPI dependencies: `get_db` (per-request session lifecycle) and `get_current_user` (JWT → `User`). Every protected route goes through `get_current_user`.
 - **`app/routers/*`** — HTTP surface. Each router owns one area (`auth`, `account`, `notes`, `tags`) and is the **only** place allowed to call the ORM directly. Routers never import each other.
+- **`app/scheduler.py`** — `ReminderScheduler` daemon thread. Ticks every 60 s; for each note with `note_date ≤ today` that has not yet received a reminder, it atomically claims the row and calls the Telegram service. Only started when `TELEGRAM_BOT_TOKEN` is configured.
+- **`app/services/telegram.py`** — Thin Telegram Bot API client. `send_message(bot_token, chat_id, text)` with up to 3 retries and exponential back-off. Returns `bool`. No business logic.
 - **`alembic/versions/*`** — schema migrations, applied at container start. Must be reversible (both `upgrade` and `downgrade`).
 - **`scripts/seed.py`** — idempotent demo data (wipes the demo user, recreates).
 - **`scripts/dump_openapi.py`** — emits `app.openapi()` JSON; drives `make openapi-dump` and the drift test.
